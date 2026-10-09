@@ -18,6 +18,15 @@
   // by the user's own clicks within this one page session.
   const expanded = new Set();
 
+  // Group-blocks default to collapsed (like the site cards themselves); this
+  // tracks the ones a user has explicitly expanded, keyed `${packId}:${groupId}`.
+  // Same not-persisted, session-only reasoning as `expanded` above.
+  const expandedGroups = new Set();
+
+  const CHEVRON_SVG = '<svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true">' +
+    '<path d="M6 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.8" ' +
+    'stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
   // Small, self-drawn identification marks — not a copy of any site's
   // official vector asset — so a card is recognisable at a glance. Scoped to
   // this settings page only; the extension's own store icon/wordmark in
@@ -105,7 +114,7 @@
       expandBtn.className = 'icon-btn expand-btn';
       expandBtn.setAttribute('aria-expanded', String(isExpanded));
       expandBtn.setAttribute('aria-label', `${isExpanded ? 'Collapse' : 'Expand'} ${pack.label} toggles`);
-      expandBtn.textContent = '▸';
+      expandBtn.innerHTML = CHEVRON_SVG;
       expandBtn.onclick = () => {
         if (isExpanded) expanded.delete(pack.id);
         else expanded.add(pack.id);
@@ -172,12 +181,41 @@
 
         const block = document.createElement('div');
         block.className = 'group-block';
+
+        const groupKey = `${pack.id}:${g.id}`;
+        const isGroupExpanded = expandedGroups.has(groupKey);
+        block.dataset.collapsed = isGroupExpanded ? '0' : '1';
+
+        const gHead = document.createElement('div');
+        gHead.className = 'group-head';
+
+        const gLeft = document.createElement('div');
+        gLeft.className = 'group-head-left';
         const h3 = document.createElement('h3');
         h3.textContent = g.label;
         const gp = document.createElement('p');
         gp.className = 'muted';
         gp.textContent = g.blurb;
-        block.append(h3, gp);
+        gLeft.append(h3, gp);
+
+        const gExpandBtn = document.createElement('button');
+        gExpandBtn.type = 'button';
+        gExpandBtn.className = 'icon-btn group-expand-btn';
+        gExpandBtn.setAttribute('aria-expanded', String(isGroupExpanded));
+        gExpandBtn.setAttribute('aria-label', `${isGroupExpanded ? 'Collapse' : 'Expand'} ${g.label}`);
+        gExpandBtn.innerHTML = CHEVRON_SVG;
+        gExpandBtn.onclick = () => {
+          if (isGroupExpanded) expandedGroups.delete(groupKey);
+          else expandedGroups.add(groupKey);
+          renderSites();
+        };
+
+        gHead.append(gLeft, gExpandBtn);
+        block.append(gHead);
+
+        const itemsHost = document.createElement('div');
+        itemsHost.className = 'group-items';
+        itemsHost.hidden = !isGroupExpanded;
 
         for (const f of items) {
           const row = document.createElement('div');
@@ -191,8 +229,17 @@
           input.checked = !!flags[f.id];
           input.setAttribute('aria-label', f.label);
           input.onchange = async () => {
+            // A click that lands back on the mode's own default isn't an
+            // override any more — clear it instead of recording a no-op
+            // override that would sit there forever (it never re-derives
+            // from the mode, so it silently pins that one toggle even
+            // after the user picks a different mode later).
+            const base = active === 'custom'
+              ? !!Object.assign(QS.storage.defaultsFor(pack, pack.customBaseMode), site.custom)[f.id]
+              : !!QS.storage.defaultsFor(pack, active)[f.id];
             site.overrides = site.overrides || {};
-            site.overrides[f.id] = input.checked;
+            if (input.checked === base) delete site.overrides[f.id];
+            else site.overrides[f.id] = input.checked;
             await persistSites();
             renderAll();
           };
@@ -223,8 +270,9 @@
           txt.append(label, desc);
 
           row.append(sw, txt);
-          block.append(row);
+          itemsHost.append(row);
         }
+        block.append(itemsHost);
         groupsHost.append(block);
       }
       card.append(groupsHost);

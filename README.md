@@ -1,8 +1,5 @@
 <p>
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="brand/wordmark-dark.png">
-    <img src="brand/wordmark-light.png" alt="QuietSurf" height="60">
-  </picture>
+  <img src="assets/quietsurf-banner.png" alt="QuietSurf" width="100%">
 </p>
 
 <p>
