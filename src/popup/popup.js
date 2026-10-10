@@ -11,7 +11,7 @@
 (async function () {
   const QS = globalThis.QS;
   const { matchPattern } = globalThis.QSBackground;
-  const REPO_ISSUES_URL = 'https://github.com/ashmit27j/quietube/issues/new';
+  const REPO_ISSUES_URL = 'https://github.com/ashmit27j/quietsurf/issues/new';
 
   const $ = (id) => document.getElementById(id);
   const masterToggle = $('master-toggle');

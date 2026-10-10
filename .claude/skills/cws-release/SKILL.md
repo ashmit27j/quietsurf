@@ -50,8 +50,8 @@ content:
 - Do not use "official", "premium", or imply a partnership with any of them.
 
 Name: **QuietSurf**. Verify it is not already taken on the store before
-first submission. The repo and its GitHub URL stay `quietube` — a
-deliberate choice, not an oversight (the maintainer's call, not this skill's).
+first submission. The repo and its GitHub URL are `quietsurf` (renamed from `quietube`),
+matching the product name.
 
 ## Privacy practices form
 

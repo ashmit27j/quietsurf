@@ -106,8 +106,8 @@ supported site, not just YouTube) and the same "must not begin with a
 supported site's name" constraint, now checked against both YouTube and
 Reddit. The mark (`brand/`) was designed alongside the rename rather than
 inherited from the old three-bars icon, for the same reason — see the brief
-at the top of `tools/gen-brand.mjs`. The GitHub repository and local
-directory stay named `quietube` — the maintainer's call, not part of this
+at the top of `tools/gen-brand.mjs`. The GitHub repository was later renamed `quietsurf` to match; the local
+directory may still be named `quietube` — the maintainer's call, not part of this
 decision.
 
 ## D11 — Music mode deliberately keeps recommendations

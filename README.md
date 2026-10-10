@@ -1,5 +1,5 @@
 <p>
-  <img src="assets/quietsurf-banner.png" alt="QuietSurf" width="100%">
+  <img src="QuietSurf-github-banner.png" alt="QuietSurf" width="100%">
 </p>
 
 <p>
@@ -67,15 +67,26 @@ itself. You never have to disable the extension.
 
 ## Install (development)
 
-Not on the Chrome Web Store yet — load it unpacked:
+Not on the Chrome Web Store yet — load it unpacked. Works in Chrome and other
+Chromium browsers (Edge, Brave, Arc).
 
-1. `chrome://extensions` → enable **Developer mode**
-2. **Load unpacked** → select the `src/` folder
-3. Open the extension's popup on a site it supports and pick a mode — this
-   is what asks Chrome for that site's permission. Nothing is granted at
-   install; each site is opt-in, one at a time, the first time you turn it on.
+1. Clone the repo:
+   ```bash
+   git clone https://github.com/ashmit27j/quietsurf.git
+   ```
+2. Open `chrome://extensions` and enable **Developer mode** (top right).
+3. Click **Load unpacked** and select the `src/` folder inside the clone.
+4. Pin QuietSurf from the puzzle-piece menu, open a supported site, click the
+   popup and pick a mode. This is what asks Chrome for that site's
+   permission — nothing is granted at install; each site is opt-in, one at a
+   time, the first time you turn it on.
 
-No build step. `src/` is the extension.
+**After editing code:** click the reload icon on the extension's card in
+`chrome://extensions`, then hard-reload (Ctrl+Shift+R) the site's tab.
+
+No build step and no `npm install` needed to run it — `src/` is the
+extension. To run the tests, `npm i` once at the repo root (installs
+Playwright only), then `npm run test`.
 
 ## Supported sites
 

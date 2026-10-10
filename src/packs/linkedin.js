@@ -244,8 +244,8 @@
 
   const modes = {
     // Generic mode names, same convention as Reddit's — see D15/D17.
-    light:      { label: 'Light', blurb: 'Ads, suggested posts, news and upsells go. Your network\'s posts stay.' },
-    deep_focus: { label: 'Deep Focus', blurb: 'No feed, no rails, no chat dock. Post, search, message, apply.' },
+    light:      { label: 'Soft block', blurb: 'Ads, suggested posts, news and upsells go. Your network\'s posts stay.' },
+    deep_focus: { label: 'Hard supress', blurb: 'No feed, no rails, no chat dock. Post, search, message, apply.' },
   };
 
   const pack = {

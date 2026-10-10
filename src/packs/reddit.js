@@ -169,8 +169,8 @@
 
   const modes = {
     // Generic mode names rather than a Reddit-flavoured pair — see D15/D17.
-    light:      { label: 'Light', blurb: 'Ads, trending searches and upsells go. The rest of Reddit stays normal.' },
-    deep_focus: { label: 'Deep Focus', blurb: 'No home feed, no sidebars, comments collapsed. Open a subreddit on purpose.' },
+    light:      { label: 'Soft block', blurb: 'Ads, trending searches and upsells go. The rest of Reddit stays normal.' },
+    deep_focus: { label: 'Hard supress', blurb: 'No home feed, no sidebars, comments collapsed. Open a subreddit on purpose.' },
   };
 
   const pack = {
