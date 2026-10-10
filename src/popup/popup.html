@@ -5,27 +5,35 @@
   <link rel="stylesheet" href="popup.css">
 </head>
 <body>
-  <header>
-    <label class="master" id="master-label" title="Turn QuietSurf off everywhere">
-      <input type="checkbox" id="master-toggle">
-      <span class="switch"></span>
+  <header class="bar">
+    <span class="hud">QuietSurf</span>
+    <label class="sw" id="master-label" title="Turn QuietSurf off everywhere">
+      <span class="hud sw-text" id="master-text">On</span>
+      <input type="checkbox" id="master-toggle" aria-label="Enabled everywhere">
+      <span class="sw-track"></span>
     </label>
-    <span id="site-name" class="site-name"></span>
   </header>
+
+  <section class="site">
+    <span class="tick tl" aria-hidden="true"></span><span class="tick tr" aria-hidden="true"></span>
+    <p class="hud faint" id="site-eyebrow">Current site</p>
+    <h1 id="site-name" class="site-name"></h1>
+    <p id="status" class="status hud" hidden></p>
+  </section>
 
   <div id="site-view">
     <div id="modes" class="modes" role="radiogroup" aria-label="Mode"></div>
     <p id="blurb" class="blurb"></p>
   </div>
 
-  <div id="unsupported-view" hidden>
+  <div id="unsupported-view" class="unsupported" hidden>
     <p class="muted">No pack for this site yet.</p>
-    <a id="request-pack" class="linkbtn" target="_blank" rel="noopener noreferrer">Request a pack on GitHub →</a>
+    <a id="request-pack" class="hud link" target="_blank" rel="noopener noreferrer">Request one on GitHub ↗</a>
   </div>
 
-  <footer>
-    <button id="peek" class="peek">Peek for 30s</button>
-    <button id="open-options" class="linkbtn">All settings →</button>
+  <footer class="bar foot">
+    <button id="peek" type="button" class="btn">Peek 30s</button>
+    <button id="open-options" type="button" class="btn ghost">Settings ↗</button>
   </footer>
 
   <script src="../background/pack-scripts.js"></script>

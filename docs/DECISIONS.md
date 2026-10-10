@@ -440,3 +440,90 @@ get the same treatment if ever removed).
 
 The popup's mode picker and Peek stay exactly as they were; this only
 removes the quick-toggle promotion mechanism layered on top of them.
+
+## D21 — Reddit/LinkedIn rebuilt from maintained filter lists; logos removed; sharp UI
+
+Asked directly: "fix the reddit, linkedin implementations, they don't work
+properly", plus a UI pass ("sharper edges, remove logos", inspired by
+getartcraft.com/apps and tailwindcss.com).
+
+**Why they didn't work, in order of impact:**
+1. *A never-granted site looked switched on.* `storage.load()` seeds every
+   pack's site at its `customBaseMode` (`light`) the first time it is seen,
+   regardless of permission. The popup and options page showed that stored
+   mode as active. Under D16 nothing injects until the host permission is
+   granted, and the only place that asks is clicking a mode. "Light" already
+   looked selected, so nobody clicked it, and the site silently did nothing.
+   Fix: both pages now render the EFFECTIVE mode, `off`, plus a "Not enabled"
+   state, until `chrome.permissions.contains` says otherwise, and they listen
+   to `permissions.onAdded/onRemoved`. Feature toggles are disabled on a site
+   with no access, since an override there would do nothing.
+2. *LinkedIn changed DOMs.* LinkedIn now serves a feed built on
+   `componentkey="…MAIN_FEED…"`, `data-testid="mainFeed"` and
+   `data-display-contents` wrappers to some accounts, and the legacy
+   `.feed-shared-update-v2` / `.scaffold-layout__aside` DOM to others. The
+   pack only knew the legacy one. Every LinkedIn feature now lists both.
+3. *Reddit's selectors were partly invented.* `shreddit-post[promoted]`,
+   `[promotedlabel]`, `shreddit-gild-modal` and friends were written from
+   memory (D15) and do not appear in any real rule set.
+
+**Where the new selectors come from.** Reddit still cannot be reached from an
+automated browser here: it serves a "prove your humanity" interstitial, the
+Wayback Machine archives that same interstitial, and getting past a bot check
+is off the table. LinkedIn still needs an account (D18). So instead of
+guessing, every tier-1/tier-2 selector now comes from the rules EasyList,
+uBlock Origin's lists and Fanboy's Annoyances ship for `reddit.com` /
+`linkedin.com` (pulled 2026-10). Those lists are exercised against the live
+sites by millions of users and get fixed within days of a redesign, which is
+the strongest evidence available short of an audit. **`verified` stays
+`'unverified'` / `'needs-account'`.** Filter-list provenance is not the same
+as this project's own live check, and the field must keep saying so. Run
+`/audit-selectors reddit` / `linkedin` from a real session before promoting
+anything.
+
+**Promoted/Suggested on LinkedIn are text, so JS stamps and CSS hides.** In
+both DOMs the only thing that marks a sponsored post is its visible
+"Promoted" label (localised; the regex carries the same language set the
+filter lists use). CSS cannot match text, so `markPromoted`/`markSuggested`
+stamp the feed item with `data-qs-promoted` / `data-qs-suggested`, and those
+attributes are ordinary registry `sel` entries hidden by the generic engine.
+This keeps rule 2 intact (JS acts, CSS hides) and a re-render that keeps the
+node keeps it hidden. A label is a leaf element whose WHOLE text matches, so
+"I got Promoted to VP" in a post body never trips it.
+
+**`QS.dom.watch`: a scoped, long-lived observer, added deliberately.** An
+infinite feed defeats `onEach`: its 15s timeout stops catching posts after
+the first screenful, and its see-once WeakSet misses a post whose label
+hydrates after the post. `watch(root, sweep)` re-runs a sweep, throttled to
+250ms, on a root the pack chooses (`main`), until main.js tears it down on
+navigation. It is still never the whole document, which is the rule
+ARCHITECTURE.md actually defends. The LinkedIn sweep skips an unstamped post
+unless its text length changed since the last look, so scrolling stays cheap.
+**Also extracted: `QS.dom.placeholder`.** D15 declined to generalise a
+pattern with one caller. The "calm placeholder where the feed was" now has
+three (YouTube, Reddit, LinkedIn), so the insert/undo choreography lives in
+core. YouTube's own `homePlaceholder` was left alone: it is `verified:
+'live'` and prepends into a different host element.
+
+**LinkedIn comment collapse moved to a new `post` page type**
+(`/feed/update/…`, `/posts/…`, checked before `feed`). On the feed, comments
+only appear after the user clicks to open them, so collapsing them there just
+added a second click.
+
+**Logos removed (supersedes D19, and D18's letter badges).** Requested
+directly: "remove logos". The per-site marks, the letter-badge fallback and
+the QuietSurf mark in the options header are all gone, as is
+`src/icons/logo.png`, which nothing else used. Toolbar and store icons
+(`src/icons/16–128.png`, `brand/`) are the extension's identity and are
+untouched. The site cards identify themselves by name and a mono "SITE 01"
+index. The footer's GitHub octicon went too, for consistency.
+
+**The look.** Square corners everywhere (`border-radius: 0` in the shared
+reset), hairline borders instead of shadows, a warm paper/ink palette,
+uppercase mono "HUD" labels for metadata, segmented mode pickers, square
+switches (from Artcraft); a framed centre column with full-bleed rules and
+crosshair ticks at the intersections (from tailwindcss.com). Tokens live once
+in `src/ui/tokens.css`, `@import`ed by both pages. That is a plain relative
+CSS import with no build step (rule 3). No web fonts: an extension page
+fetching Google Fonts would be a network request (rule 5), so the stacks name
+Inter / Geist Mono first and fall back to local system fonts.

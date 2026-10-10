@@ -1,21 +1,41 @@
 /* Styles for elements THIS PACK adds to linkedin.com.
    Never put LinkedIn-hiding rules here — those are generated from the pack's
-   registry at runtime by core/engine.js. This file is static and is listed
-   in manifest.json's content_scripts.css, so it is applied before first
-   paint with no JS involved. */
+   registry at runtime by core/engine.js. Registered alongside the pack's
+   scripts by background/pack-scripts.js, so it is applied before first
+   paint with no JS involved. Square corners and a mono label, to match the
+   extension's own pages (D21). */
 
 .qs-reveal-btn {
   display: block;
   margin: 16px 0 24px;
-  padding: 9px 16px;
-  border: 1px solid rgba(128, 128, 128, 0.3);
-  border-radius: 18px;
+  padding: 10px 14px;
+  border: 1px solid rgba(128, 128, 128, 0.35);
+  border-radius: 0;
   background: transparent;
   color: inherit;
-  font: 500 14px/1 system-ui, sans-serif;
+  font: 500 11px/1 ui-monospace, "SF Mono", "Cascadia Mono", Consolas, monospace;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
   cursor: pointer;
 }
 
 .qs-reveal-btn:hover {
   background: rgba(128, 128, 128, 0.15);
+}
+
+.qs-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  padding: 48px 24px;
+  border: 1px dashed rgba(128, 128, 128, 0.35);
+  text-align: center;
+}
+
+.qs-placeholder p {
+  margin: 0;
+  max-width: 34ch;
+  font: 400 22px/1.5 system-ui, sans-serif;
+  opacity: 0.6;
 }

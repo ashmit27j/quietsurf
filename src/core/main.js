@@ -17,6 +17,13 @@
  */
 (function () {
   const QS = globalThis.QS;
+  // The service worker injects a pack into the active tab the moment its
+  // permission is granted (D16). If that tab already had the pack — a
+  // permission revoked and re-granted without a reload — the isolated world
+  // still holds the first boot, and a second one would double every interval
+  // and listener below. The CSS path above is idempotent; this is not.
+  if (QS.booted) return;
+  QS.booted = true;
   const pack = QS.pack;
   // Core handlers first so a pack could (in principle) override one by name;
   // no pack does today.

@@ -7,6 +7,36 @@ unreleased version — nothing has shipped under the old name, so this is one
 changelog entry, not a migration note between two releases. The YouTube-only
 history is preserved on the `quietube` branch/tag for reference.
 
+### Fixed — Reddit and LinkedIn packs (D21)
+- LinkedIn: rewritten for both of LinkedIn's feed DOMs (the new
+  `componentkey` / `data-testid="mainFeed"` one and the legacy class-name
+  one). The old pack only knew the legacy DOM, so most toggles matched
+  nothing. Promoted and Suggested posts are found by their visible label (in
+  every language the filter lists track), stamped with a `data-qs-*`
+  attribute, and hidden by CSS. New toggles: whole feed + placeholder,
+  "Add to your feed", reaction counts, chat dock. Comment collapse moved to
+  single-post pages, where it is actually useful.
+- Reddit: dropped selectors for elements that do not exist, and rebuilt
+  every toggle from the rules today's maintained filter lists ship for
+  reddit.com. New toggles: Home/Popular feed + placeholder, trending
+  searches, Popular/All/Explore links, left sidebar, app/Premium nags. "Home"
+  now covers every algorithmic listing (Best/Hot/New/Top, r/popular, r/all).
+- Popup and options showed a site's stored mode ("Light") even when its host
+  permission had never been granted, so the site looked on while doing
+  nothing, and the permission prompt never came. They now show the effective
+  mode (Off) with a "Not enabled" state until access is granted.
+- A pack injected twice into one tab (permission revoked and re-granted
+  without a reload) no longer boots `core/main.js` twice.
+
+### Changed — UI redesign (D21)
+- Popup and options page redesigned: square corners throughout, hairline
+  borders instead of shadows, a framed-column layout with crosshair ticks,
+  mono uppercase labels, segmented mode pickers, square switches. Shared
+  tokens in `src/ui/tokens.css`. No web fonts (rule 5).
+- Removed every logo from the extension's pages: the per-site marks (D19)
+  and the QuietSurf mark in the options header. `src/icons/logo.png` is gone;
+  the toolbar/store icons are unchanged.
+
 ### Changed — core/pack architecture, multi-site, opt-in permissions
 - Split the single YouTube-shaped codebase into a site-agnostic `src/core/`
   engine plus one `src/packs/<id>.js` per site. Zero behaviour change for

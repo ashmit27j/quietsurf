@@ -186,14 +186,32 @@ test.describe('popup and options pages (step 6 progressive disclosure)', () => {
     await page.close();
   });
 
-  test('footer links to GitHub and every site card shows a logo badge', async () => {
+  test('footer links to GitHub, and the page carries no logos (D21)', async () => {
     const page = await ctx.newPage();
     await page.goto(await extensionUrl('options/options.html'));
     await page.waitForTimeout(600);
 
     const githubLink = page.locator('.foot a[href*="github.com"]');
     await expect(githubLink).toHaveCount(1);
-    expect(await page.locator('.site-card .site-logo').count()).toBe(3);
+    expect(await page.locator('img').count(), 'no brand or site logo images').toBe(0);
+    expect(await page.locator('.site-card svg').count(), 'no per-site marks').toBe(0);
+    await page.close();
+  });
+
+  test('a site with no host permission shows as not enabled, not as its stored mode (D21)', async () => {
+    // Fresh install: no pack is granted, yet every site's stored mode is its
+    // baseline ('light'). The card must show the EFFECTIVE mode — Off — and
+    // a "Not enabled" tag, with its toggles disabled.
+    const page = await ctx.newPage();
+    await page.goto(await extensionUrl('options/options.html'));
+    await page.waitForTimeout(600);
+
+    const card = page.locator('.site-card').nth(1);
+    await expect(card.locator('.tag', { hasText: 'Not enabled' })).toHaveCount(1);
+    await expect(card.locator('.modes button[aria-checked="true"]')).toHaveText('Off');
+    await card.locator('.expand-btn').click();
+    await card.locator('.group-head').first().click();
+    await expect(card.locator('.feat input').first()).toBeDisabled();
     await page.close();
   });
 

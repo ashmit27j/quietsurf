@@ -13,14 +13,17 @@
   const { matchPattern } = globalThis.QSBackground;
   const REPO_ISSUES_URL = 'https://github.com/ashmit27j/quietube/issues/new';
 
-  const masterToggle = document.getElementById('master-toggle');
-  const siteNameEl = document.getElementById('site-name');
-  const siteView = document.getElementById('site-view');
-  const unsupportedView = document.getElementById('unsupported-view');
-  const modesEl = document.getElementById('modes');
-  const blurbEl = document.getElementById('blurb');
-  const peekEl = document.getElementById('peek');
-  const requestPackEl = document.getElementById('request-pack');
+  const $ = (id) => document.getElementById(id);
+  const masterToggle = $('master-toggle');
+  const masterText = $('master-text');
+  const siteNameEl = $('site-name');
+  const statusEl = $('status');
+  const siteView = $('site-view');
+  const unsupportedView = $('unsupported-view');
+  const modesEl = $('modes');
+  const blurbEl = $('blurb');
+  const peekEl = $('peek');
+  const requestPackEl = $('request-pack');
 
   let cfg = await QS.storage.load();
   const packs = QS.storage.knownPacks();
@@ -34,6 +37,16 @@
   const MODE_META = activePack
     ? { off: QS.storage.OFF_META, ...activePack.modes, custom: QS.storage.CUSTOM_META }
     : {};
+
+  // D21: a site's stored mode defaults to its pack's baseline ('light') the
+  // moment it is first seen, long before its host permission is granted. The
+  // popup used to show that stored mode as active, so a never-enabled site
+  // looked switched on while nothing was injected, and because "Light" already
+  // looked selected, nobody clicked it, so the permission prompt never came.
+  // What the popup shows is now the EFFECTIVE mode: 'off' until granted.
+  const hasAccess = () =>
+    activePack ? chrome.permissions.contains({ origins: activePack.hosts }) : Promise.resolve(false);
+  let granted = await hasAccess();
 
   function hostnameOf(url) {
     try { return new URL(url).hostname; } catch { return 'this site'; }
@@ -49,23 +62,31 @@
     // first time the user picks anything other than Off — this click is the
     // user gesture chrome.permissions.request() requires. The service
     // worker's onAdded listener registers and injects the pack once granted.
-    if (m !== 'off') {
-      const already = await chrome.permissions.contains({ origins: activePack.hosts });
-      if (!already) {
-        const granted = await chrome.permissions.request({ origins: activePack.hosts }).catch(() => false);
-        if (!granted) return; // declined — leave the mode untouched
-      }
+    if (m !== 'off' && !granted) {
+      granted = await chrome.permissions.request({ origins: activePack.hosts }).catch(() => false);
+      if (!granted) return render(); // declined — leave the mode untouched
     }
     site.mode = m;
     await QS.storage.save({ sites: cfg.sites, peekUntil: 0 });
     render();
   }
 
+  function setStatus(state, text) {
+    statusEl.hidden = false;
+    statusEl.dataset.state = state;
+    const dot = document.createElement('span');
+    dot.className = 'dot';
+    statusEl.replaceChildren(dot, text);
+  }
+
   function render() {
-    masterToggle.checked = cfg.masterEnabled !== false;
+    const masterOn = cfg.masterEnabled !== false;
+    masterToggle.checked = masterOn;
+    masterText.textContent = masterOn ? 'On' : 'Off';
 
     if (!activePack) {
       siteNameEl.textContent = hostnameOf(tabUrl);
+      statusEl.hidden = true;
       siteView.hidden = true;
       unsupportedView.hidden = false;
       peekEl.hidden = true;
@@ -79,7 +100,14 @@
     unsupportedView.hidden = true;
     peekEl.hidden = false;
 
-    const active = QS.storage.activeMode(cfg, Date.now(), activePack);
+    const stored = QS.storage.activeMode(cfg, Date.now(), activePack);
+    const active = granted ? stored : 'off';
+
+    if (!masterOn) setStatus('off', 'Paused everywhere');
+    else if (!granted) setStatus('needs-access', 'Not enabled here — pick a mode');
+    else if (active === 'off') setStatus('off', 'Off on this site');
+    else setStatus('on', `Active · ${MODE_META[active].label}`);
+
     modesEl.replaceChildren(
       ...MODES.filter((m) => m !== 'custom' || Object.keys(site.custom || {}).length).map((m) => {
         const b = document.createElement('button');
@@ -93,14 +121,17 @@
         return b;
       })
     );
-    blurbEl.textContent = MODE_META[active].blurb;
-    if (cfg.schedule?.enabled && active !== site.mode) {
+    blurbEl.textContent = granted
+      ? MODE_META[active].blurb
+      : `Chrome will ask for access to ${hostnameOf(tabUrl)} the first time you pick a mode. Nothing leaves your browser.`;
+    if (granted && cfg.schedule?.enabled && active !== site.mode) {
       blurbEl.textContent = `Scheduled: ${MODE_META[active].label} is active right now. ${MODE_META[active].blurb}`;
     }
 
     const peeking = (cfg.peekUntil || 0) > Date.now();
     peekEl.dataset.active = peeking ? '1' : '0';
-    peekEl.textContent = peeking ? 'End peek' : 'Peek for 30s';
+    peekEl.textContent = peeking ? 'End peek' : 'Peek 30s';
+    peekEl.disabled = !granted || active === 'off' || !masterOn;
   }
 
   masterToggle.addEventListener('change', async () => {
@@ -116,13 +147,19 @@
     render();
   });
 
-  document.getElementById('open-options').addEventListener('click', openOptions);
+  $('open-options').addEventListener('click', openOptions);
 
   chrome.storage.onChanged.addListener(async () => {
     cfg = await QS.storage.load();
     if (activePack) site = cfg.sites[activePack.id];
     render();
   });
+
+  // A grant/revoke from chrome://extensions or the options page while the
+  // popup is open.
+  const onPerms = async () => { granted = await hasAccess(); render(); };
+  chrome.permissions.onAdded.addListener(onPerms);
+  chrome.permissions.onRemoved.addListener(onPerms);
 
   render();
 })();

@@ -143,6 +143,13 @@ handles every hiding case; the JS handlers that do need to react
 (`forceAutoplayOff`, `disableAmbient`) use a bounded 2–3s interval scoped to
 one page type and are torn down on navigation. Total idle cost is two timers.
 
+The one sanctioned long-lived observer is `QS.dom.watch(root, sweep)` (D21),
+for infinite feeds where a post's only "this is an ad" marker is its visible
+text: it observes a NARROW root the pack hands it (the feed's own `main`),
+throttles its sweep to once per 250ms, and is torn down on every navigation
+like any other handler. The handler only stamps a `data-qs-*` attribute; the
+registry's CSS does the hiding.
+
 ## Handler lifecycle
 
 ```

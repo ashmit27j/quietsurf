@@ -59,6 +59,52 @@
     return () => { obs.disconnect(); clearTimeout(timer); };
   }
 
+  /**
+   * Re-run `sweep(root)` whenever `root`'s subtree changes, throttled, until
+   * the returned cleanup is called. For infinite feeds, where `onEach`'s
+   * bounded timeout would stop catching items after the first screenful and
+   * its see-once WeakSet would miss an item whose label hydrates after the
+   * item itself. Still never the whole document: the caller hands over a
+   * narrow root (a feed's own container), and main.js tears this down on
+   * every navigation — see docs/DECISIONS.md D21.
+   */
+  function watch(root, sweep, opts = {}) {
+    const { throttle = 250 } = opts;
+    let timer = null;
+    const run = () => {
+      timer = null;
+      try { sweep(root); } catch (e) { console.warn('[QuietSurf] watch', e); }
+    };
+    run();
+    const obs = new MutationObserver(() => {
+      if (!timer) timer = setTimeout(run, throttle);
+    });
+    obs.observe(root, { childList: true, subtree: true });
+    return () => { obs.disconnect(); clearTimeout(timer); };
+  }
+
+  /**
+   * Put a short, calm line of text immediately before `selector`'s first
+   * match, for a pack that hides a whole feed: an empty page reads as broken,
+   * a question reads as intentional. The pack owns the copy and the styling
+   * (via `className`); this only owns the insert/undo choreography.
+   */
+  function placeholder(selector, { id, className, text }) {
+    let undo = () => {};
+    const cancel = waitFor(selector, (target) => {
+      if (document.getElementById(id) || !target.parentNode) return;
+      const box = document.createElement('div');
+      box.id = id;
+      box.className = className;
+      const p = document.createElement('p');
+      p.textContent = text;
+      box.append(p);
+      target.parentNode.insertBefore(box, target);
+      undo = () => box.remove();
+    });
+    return all(cancel, () => undo());
+  }
+
   /** setInterval that is guaranteed to be cleared by the returned function. */
   function every(ms, fn) {
     fn();
@@ -114,6 +160,6 @@
   }
 
   globalThis.QS = Object.assign(globalThis.QS || {}, {
-    dom: { waitFor, onEach, every, all, collapseWithReveal },
+    dom: { waitFor, onEach, watch, placeholder, every, all, collapseWithReveal },
   });
 })();

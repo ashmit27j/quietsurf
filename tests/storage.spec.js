@@ -265,6 +265,6 @@ test.describe('multi-pack contexts (popup/options load more than one pack)', () 
     const { flags } = QS.storage.resolve(cfg, Date.now(), redditPack);
     expect(flags.right_sidebar, 'reddit deep_focus should hide the right sidebar').toBe(true);
     expect(typeof flags.promoted_posts, 'these must be reddit\'s flags, not youtube\'s').toBe('boolean');
-    expect(flags.home_feed, 'a youtube-only feature id should not appear in reddit\'s flags').toBeUndefined();
+    expect(flags.home_chips, 'a youtube-only feature id should not appear in reddit\'s flags').toBeUndefined();
   });
 });
