@@ -38,6 +38,11 @@ check(
   'optional_host_permissions lists at least one pack host'
 );
 check(/^\d+\.\d+\.\d+$/.test(manifest.version), `version "${manifest.version}" is semver`);
+// The store rejects a manifest description over 132 characters at upload.
+check(
+  (manifest.description || '').length <= 132,
+  `description is ${(manifest.description || '').length} chars (store limit 132)`
+);
 check(
   manifest.content_scripts === undefined,
   'no static content_scripts entry — packs register dynamically via chrome.scripting (D16)'

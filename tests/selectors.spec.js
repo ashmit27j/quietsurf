@@ -88,13 +88,34 @@ for (const [page, url] of Object.entries(PAGES)) {
           }
         }
 
-        const counts = {};
-        for (const sel of f.sel) {
-          counts[sel] = await p.evaluate((s) => {
-            try { return document.querySelectorAll(s).length; } catch { return -1; }
-          }, sel);
+        const count = async () => {
+          const c = {};
+          for (const sel of f.sel) {
+            c[sel] = await p.evaluate((s) => {
+              try { return document.querySelectorAll(s).length; } catch { return -1; }
+            }, sel);
+          }
+          return c;
+        };
+        const sum = (c) => Object.values(c).filter((n) => n > 0).reduce((a, b) => a + b, 0);
+
+        let counts = await count();
+        let total = sum(counts);
+
+        // Whether a results page carries a shelf or a knowledge card depends
+        // on the query, not on a redesign ("lofi" serves neither). Before
+        // calling that selector stale, try queries known to serve one (D14).
+        if (!total && f.id === 'search_shelves') {
+          for (const q of ['taylor swift', 'minecraft']) {
+            await p.goto(`https://www.youtube.com/results?search_query=${encodeURIComponent(q)}`, { waitUntil: 'domcontentloaded' });
+            await p.waitForSelector('ytd-video-renderer', { timeout: 15000 }).catch(() => {});
+            await p.mouse.wheel(0, 4000);
+            await p.waitForTimeout(3000);
+            counts = await count();
+            total = sum(counts);
+            if (total) break;
+          }
         }
-        const total = Object.values(counts).filter((n) => n > 0).reduce((a, b) => a + b, 0);
 
         expect(
           total,

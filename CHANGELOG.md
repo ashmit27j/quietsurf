@@ -1,9 +1,9 @@
 # Changelog
 
-## [0.1.0] — unreleased
+## [0.1.0] — 2026-10-11
 
 Renamed from Quiet (YouTube-only) to **QuietSurf** during this same
-unreleased version — nothing has shipped under the old name, so this is one
+first version — nothing has shipped under the old name, so this is one
 changelog entry, not a migration note between two releases. The YouTube-only
 history is preserved on the `quietube` branch/tag for reference.
 

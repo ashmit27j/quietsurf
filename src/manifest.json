@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "QuietSurf",
   "version": "0.1.0",
-  "description": "Remove the distracting parts of YouTube, Reddit and more. Per-site toggles, switchable modes, free forever — no account, no tracking.",
+  "description": "Remove the distracting parts of YouTube, Reddit and more. Per-site toggles and modes, free forever — no account, no tracking.",
   "minimum_chrome_version": "105",
 
   "permissions": ["storage", "scripting", "activeTab"],
